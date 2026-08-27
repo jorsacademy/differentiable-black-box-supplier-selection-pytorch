@@ -304,6 +304,63 @@ python supplier_selection_blackbox.py \
   --perturbation 0.03
 ```
 
+## Validated GitHub Actions run
+
+GitHub Actions run `33101948992` completed successfully on Ubuntu 24.04 / CPython 3.12.14 with CPU PyTorch 2.13.0, NumPy 2.5.2, and SciPy 1.18.1. The supplier-selection self-test and all **8 regression tests** passed before the end-to-end differentiable black-box smoke experiment.
+
+The CI smoke configuration used:
+
+```text
+training samples       48
+validation samples     16
+test samples           20
+MSE warm-start epochs   3
+fine-tuning epochs      2
+batch size              12
+perturbation lambda    0.03
+```
+
+Observed GitHub-runner results:
+
+```text
+MSE
+  coefficient RMSE       18.055
+  mean regret           1110.763
+  p90 regret            1782.437
+  mean relative regret    17.056%
+  training MILP solves         0
+
+signed identity
+  coefficient RMSE       18.140
+  mean regret           1096.338
+  p90 regret            1782.437
+  mean relative regret    16.829%
+  training MILP solves        96
+
+perturb and resolve
+  coefficient RMSE       18.143
+  mean regret           1079.026
+  p90 regret            1782.437
+  mean relative regret    16.612%
+  training MILP solves       192
+```
+
+Paired smoke differences:
+
+```text
+perturb-resolve - MSE
+-31.737
+95% CI [-77.664, 14.190]
+
+perturb-resolve - signed identity
+-17.312
+95% CI [-53.545, 18.922]
+```
+
+Both confidence intervals include zero. The smoke run validates the solver/autograd/training mechanics and the expected solver-call accounting; it is **not** used as a statistical superiority claim.
+
+Run: https://github.com/jorsacademy/differentiable-black-box-supplier-selection-pytorch/actions/runs/33101948992
+
 ## Exactness and scope
 
 The supplier-selection MILP is solved to HiGHS optimality subject to numerical tolerances. For the declared four-supplier benchmark, an independent active-set enumeration oracle cross-checks the optimum.
