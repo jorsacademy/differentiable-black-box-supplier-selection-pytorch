@@ -1,0 +1,42 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install CPU PyTorch and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.3"
+          pip install -r requirements.txt
+
+      - name: Run supplier-selection self-test
+        run: python supplier_selection_blackbox.py --self-test
+
+      - name: Run regression suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Run differentiable black-box smoke experiment
+        run: |
+          python supplier_selection_blackbox.py \
+            --seed 42 \
+            --train-samples 48 \
+            --validation-samples 16 \
+            --test-samples 20 \
+            --warmstart-epochs 3 \
+            --finetune-epochs 2 \
+            --batch-size 12 \
+            --perturbation 0.03
